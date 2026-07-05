@@ -121,9 +121,9 @@ export async function POST(request: NextRequest) {
     const normalizedLop = normalizeVietnamese(lop);
 
     const results = rows.slice(1).filter((row) => {
-      const rowHoTen = normalizeVietnamese(row[0] || "");
-      const rowLop = normalizeVietnamese(row[1] || "");
-      const rowPhone = (row[2] || "").replace(/\D/g, "");
+      const rowHoTen = normalizeVietnamese(row[1] || "");
+      const rowLop = normalizeVietnamese(row[2] || "");
+      const rowPhone = (row[3] || "").replace(/\D/g, "");
 
       return (
         rowHoTen.includes(normalizedHoTen) &&
@@ -144,15 +144,16 @@ export async function POST(request: NextRequest) {
 
     // Map results - mask phone for privacy
     const mappedResults = results.map((row) => ({
-      hoTen: row[0] || "",
-      lop: row[1] || "",
-      soDienThoai: maskPhone(row[2] || ""),
-      soBuoi: row[3] || "",
-      soTien: row[4] || "",
-      ndck: row[5] || "",
-      ghiChu: row[6] || "",
-      trangThai: row[7] || "",
-      qrCode: row[8] || "",
+      stt: row[0] || "",
+      hoTen: row[1] || "",
+      lop: row[2] || "",
+      soDienThoai: maskPhone(row[3] || ""),
+      soBuoi: row[4] || "",
+      soTien: row[5] || "",
+      ndck: row[6] || "",
+      ghiChu: row[7] || "",
+      trangThai: row[8] || "",
+      qrCode: row[9] || "",
     }));
 
     return NextResponse.json({ results: mappedResults });
