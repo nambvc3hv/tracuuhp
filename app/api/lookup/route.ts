@@ -73,18 +73,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const hoTen = sanitize(body.hoTen || "");
     const lop = sanitize(body.lop || "");
-    const soDienThoai = sanitize(body.soDienThoai || "").replace(/\D/g, "");
 
-    if (!hoTen || !lop || !soDienThoai) {
+    if (!hoTen || !lop) {
       return NextResponse.json(
-        { error: "Vui lòng nhập đầy đủ thông tin: Họ tên, Lớp và Số điện thoại." },
-        { status: 400 }
-      );
-    }
-
-    if (soDienThoai.length < 9 || soDienThoai.length > 11) {
-      return NextResponse.json(
-        { error: "Số điện thoại không hợp lệ." },
+        { error: "Vui lòng nhập đầy đủ thông tin: Họ tên học sinh và Tên lớp." },
         { status: 400 }
       );
     }
@@ -117,18 +109,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Skip header row, search for matching records
+    // Columns: A(STT), B(Ho ten), C(Lớp), D(Số buổi), E(Số tiền), F(Nội dung chuyển khoản), G(Ghi chú), H(Trạng thái), I(QR code)
     const normalizedHoTen = normalizeVietnamese(hoTen);
     const normalizedLop = normalizeVietnamese(lop);
 
     const results = rows.slice(1).filter((row) => {
-      const rowHoTen = normalizeVietnamese(row[0] || "");
-      const rowLop = normalizeVietnamese(row[1] || "");
-      const rowPhone = (row[2] || "").replace(/\D/g, "");
+      const rowHoTen = normalizeVietnamese(row[1] || ""); // Column B
+      const rowLop = normalizeVietnamese(row[2] || ""); // Column C
 
       return (
         rowHoTen.includes(normalizedHoTen) &&
-        rowLop.includes(normalizedLop) &&
-        rowPhone.includes(soDienThoai)
+        rowLop.includes(normalizedLop)
       );
     });
 
@@ -136,23 +127,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Không tìm thấy thông tin. Vui lòng kiểm tra lại Họ tên, Lớp và Số điện thoại.",
+            "Không tìm thấy thông tin. Vui lòng kiểm tra lại Họ tên học sinh và Tên lớp.",
         },
         { status: 404 }
       );
     }
 
-    // Map results - mask phone for privacy
+    // Map results according to Google Sheet columns
     const mappedResults = results.map((row) => ({
-      hoTen: row[0] || "",
-      lop: row[1] || "",
-      soDienThoai: maskPhone(row[2] || ""),
-      soBuoi: row[3] || "",
-      soTien: row[4] || "",
-      ndck: row[5] || "",
-      ghiChu: row[6] || "",
-      trangThai: row[7] || "",
-      qrCode: row[8] || "",
+      stt: row[0] || "",           // Column A
+      hoTen: row[1] || "",         // Column B
+      lop: row[2] || "",           // Column C
+      soBuoi: row[3] || "",        // Column D
+      soTien: row[4] || "",        // Column E
+      ndck: row[5] || "",          // Column F (Nội dung chuyển khoản)
+      ghiChu: row[6] || "",        // Column G
+      trangThai: row[7] || "",     // Column H
+      qrCode: row[8] || "",        // Column I
     }));
 
     return NextResponse.json({ results: mappedResults });
