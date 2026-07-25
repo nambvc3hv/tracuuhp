@@ -14,9 +14,9 @@ import {
 import { Search, Loader2, GraduationCap } from "lucide-react";
 
 export interface StudentResult {
+  stt: string;
   hoTen: string;
   lop: string;
-  soDienThoai: string;
   soBuoi: string;
   soTien: string;
   ndck: string;
@@ -34,25 +34,14 @@ interface SearchFormProps {
 export function SearchForm({ onResults, onError, onClear }: SearchFormProps) {
   const [hoTen, setHoTen] = useState("");
   const [lop, setLop] = useState("");
-  const [soDienThoai, setSoDienThoai] = useState("");
   const [loading, setLoading] = useState(false);
-
-  function handlePhoneChange(value: string) {
-    const digitsOnly = value.replace(/\D/g, "").slice(0, 11);
-    setSoDienThoai(digitsOnly);
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     onClear();
 
-    if (!hoTen.trim() || !lop.trim() || !soDienThoai.trim()) {
-      onError("Vui lòng nhập đầy đủ thông tin tra cứu.");
-      return;
-    }
-
-    if (soDienThoai.length < 9) {
-      onError("Số điện thoại phải có ít nhất 9 chữ số.");
+    if (!hoTen.trim() || !lop.trim()) {
+      onError("Vui lòng nhập đầy đủ thông tin: Họ tên học sinh và Tên lớp.");
       return;
     }
 
@@ -65,7 +54,6 @@ export function SearchForm({ onResults, onError, onClear }: SearchFormProps) {
         body: JSON.stringify({
           hoTen: hoTen.trim(),
           lop: lop.trim(),
-          soDienThoai: soDienThoai.trim(),
         }),
       });
 
@@ -120,35 +108,15 @@ export function SearchForm({ onResults, onError, onClear }: SearchFormProps) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="lop" className="text-foreground font-medium">
-              Lớp
+              Tên lớp
             </Label>
             <Input
               id="lop"
-              placeholder="Ví dụ: 6A1"
+              placeholder="Ví dụ: 10T1"
               value={lop}
               onChange={(e) => setLop(e.target.value)}
               maxLength={20}
               required
-              className="bg-background"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label
-              htmlFor="soDienThoai"
-              className="text-foreground font-medium"
-            >
-              Số điện thoại phụ huynh
-            </Label>
-            <Input
-              id="soDienThoai"
-              type="tel"
-              placeholder="Ví dụ: 0901234567"
-              value={soDienThoai}
-              onChange={(e) => handlePhoneChange(e.target.value)}
-              maxLength={11}
-              required
-              inputMode="numeric"
               className="bg-background"
             />
           </div>
