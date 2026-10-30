@@ -160,12 +160,29 @@ function CopyableRow({
   );
 }
 
+function normalizeQrSource(value: string) {
+  const source = value.trim();
+
+  // Google Sheets may contain an IMAGE() formula instead of the raw URL.
+  const formulaUrl = source.match(/IMAGE\(\s*["']([^"']+)["']/i)?.[1];
+  const url = formulaUrl || source;
+
+  // Convert common Google Drive sharing links into a renderable image URL.
+  const driveFileId = url.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=)|docs\.google\.com\/uc\?id=)([a-zA-Z0-9_-]+)/)?.[1];
+  if (driveFileId) {
+    return `https://drive.google.com/thumbnail?id=${driveFileId}&sz=w1000`;
+  }
+
+  return url;
+}
+
 function QrCodeViewer({ src }: { src: string }) {
   const [showModal, setShowModal] = useState(false);
+  const imageSrc = normalizeQrSource(src);
 
   const handleDownload = useCallback(async () => {
     try {
-      const response = await fetch(src);
+      const response = await fetch(imageSrc);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -176,9 +193,9 @@ function QrCodeViewer({ src }: { src: string }) {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch {
-      window.open(src, "_blank");
+      window.open(imageSrc, "_blank");
     }
-  }, [src]);
+  }, [imageSrc]);
 
   return (
     <>
@@ -195,7 +212,7 @@ function QrCodeViewer({ src }: { src: string }) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={src}
+            src={imageSrc}
             alt="QR Code chuyển khoản học phí"
             className="h-56 w-56 object-contain"
             crossOrigin="anonymous"
@@ -247,7 +264,7 @@ function QrCodeViewer({ src }: { src: string }) {
             </h3>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={src}
+              src={imageSrc}
               alt="QR Code chuyển khoản học phí - phóng to"
               className="max-h-[70vh] max-w-full object-contain"
               crossOrigin="anonymous"
