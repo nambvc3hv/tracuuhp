@@ -167,6 +167,12 @@ function normalizeQrSource(value: string) {
   const formulaUrl = source.match(/IMAGE\(\s*["']([^"']+)["']/i)?.[1];
   const url = formulaUrl || source;
 
+  // VietQR currently redirects legacy JPG/PNG requests to SVG. Use the
+  // final format directly so browsers do not render the redirect as a broken image.
+  if (/^https?:\/\/img\.vietqr\.io\/image\//i.test(url)) {
+    return url.replace(/\.(?:jpe?g|png)(?=\?|$)/i, ".svg");
+  }
+
   // Convert common Google Drive sharing links into a renderable image URL.
   const driveFileId = url.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=)|docs\.google\.com\/uc\?id=)([a-zA-Z0-9_-]+)/)?.[1];
   if (driveFileId) {
@@ -215,7 +221,6 @@ function QrCodeViewer({ src }: { src: string }) {
             src={imageSrc}
             alt="QR Code chuyển khoản học phí"
             className="h-56 w-56 object-contain"
-            crossOrigin="anonymous"
           />
           <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-foreground/0 transition-colors group-hover:bg-foreground/5">
             <span className="rounded-full bg-card/90 px-3 py-1.5 text-xs font-medium text-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
@@ -267,8 +272,7 @@ function QrCodeViewer({ src }: { src: string }) {
               src={imageSrc}
               alt="QR Code chuyển khoản học phí - phóng to"
               className="max-h-[70vh] max-w-full object-contain"
-              crossOrigin="anonymous"
-            />
+              />
             <div className="flex items-center gap-3">
               <Button
                 variant="default"

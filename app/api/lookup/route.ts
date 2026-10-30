@@ -32,7 +32,9 @@ function sanitize(input: string): string {
 function normalizeVietnamese(str: string): string {
   return str
     .toLowerCase()
-    .normalize("NFC")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
     .replace(/\s+/g, " ")
     .trim();
 }
